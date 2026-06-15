@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Header
 from models.schemas import SigninSchema, SignupSchema
 import httpx
+import os
 
 router = APIRouter(prefix="/authservice")
 
-SPRING_URL = "http://localhost:8001/"  # Spring Boot URL
+SPRING_URL = os.getenv("SPRING_URL", "http://localhost:8001/").rstrip("/") + "/"
 
 
 @router.post("/signup")

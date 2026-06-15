@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
@@ -14,8 +15,13 @@ import io.jsonwebtoken.security.Keys;
 
 @Service
 public class JwtService {
-	  public final String SECRETE_KEY = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM0987654321";
-	  public final SecretKey key = Keys.hmacShaKeyFor(SECRETE_KEY.getBytes());
+	  @Value("${app.jwt.secret}")
+	  private String secretKey;
+
+	  private SecretKey getKey() {
+	    return Keys.hmacShaKeyFor(secretKey.getBytes());
+	  }
+
 	  public Object generateJWT(Object username, Object role) throws Exception
 	  {
 	    return generateJWT(username, role, null);
@@ -31,13 +37,13 @@ public class JwtService {
 	        .claims(payload)
 	        .issuedAt(new Date())
 	        .expiration(new Date(new Date().getTime() + 86400000))
-	        .signWith(key)    
+	        .signWith(getKey())    
 	        .compact();
 	  }
 	  public Map<String, Object> validateJWT(String token)throws Exception
 	  {
 	    Claims claims = Jwts.parser()
-	              .verifyWith(key)
+	              .verifyWith(getKey())
 	              .build()
 	              .parseSignedClaims(token)
 	              .getPayload();

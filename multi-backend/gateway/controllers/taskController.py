@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Header
 from models.schemas import TaskSchema
 import httpx
+import os
 
 router = APIRouter(prefix="/taskservice")
 
-TASK_URL = "http://localhost:8002/"
+TASK_URL = os.getenv("TASK_URL", "http://localhost:8002/").rstrip("/") + "/"
 
 
 @router.post("/createtask")

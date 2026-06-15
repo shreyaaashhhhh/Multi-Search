@@ -22,7 +22,7 @@ app.get("/", async(req, res) => {
     res.json({ code: 200, message: "Started...." });
 });
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8002;
 //Listener for the app
 app.listen(PORT, async() => {
     console.log("Server running on http://localhost:" + PORT);

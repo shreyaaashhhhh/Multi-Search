@@ -1,0 +1,80 @@
+databases:
+  - name: multi-postgres
+    databaseName: multisearch
+    user: multisearch_user
+    plan: free
+
+services:
+  - type: web
+    name: multi-core-service
+    runtime: docker
+    rootDir: multi-backend/coreservices/coureservice
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: DB_HOST
+        fromDatabase:
+          name: multi-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: multi-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: multi-postgres
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: multi-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: multi-postgres
+          property: password
+      - key: SECRETE_KEY
+        sync: false
+
+  - type: web
+    name: multi-task-service
+    runtime: node
+    rootDir: multi-backend/taskservices
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: DBURL
+        sync: false
+      - key: SECRETE_KEY
+        sync: false
+
+  - type: web
+    name: multi-gateway
+    runtime: python
+    rootDir: multi-backend/gateway
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: SPRING_URL
+        value: http://multi-core-service:10000
+      - key: TASK_URL
+        value: http://multi-task-service:10000
+      - key: CORS_ORIGINS
+        value: https://multi-frontend.onrender.com
+
+  - type: web
+    name: multi-frontend
+    runtime: static
+    rootDir: multi-frontend/multi-search-refactored
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://multi-gateway.onrender.com
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Header
 from models.schemas import CartItemSchema
 import httpx
+import os
 
 router = APIRouter(prefix="/cartservice")
 
-SPRING_URL = "http://localhost:8001/"
+SPRING_URL = os.getenv("SPRING_URL", "http://localhost:8001/").rstrip("/") + "/"
 
 
 @router.post("/add")
